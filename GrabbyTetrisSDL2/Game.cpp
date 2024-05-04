@@ -1,12 +1,26 @@
 #include "Game.h"
-#include "Board.h"
 
-Game::Game() {
+TetrominoType getRandomTetrominoType() {
+	static std::default_random_engine engine((unsigned)time(0));
+	std::uniform_int_distribution<int> distribution(0, 6);
+
+	return static_cast<TetrominoType>(distribution(engine));
+}
+
+Game::Game()
+	: window(nullptr), renderer(nullptr), event(), isRunning(1) {
 	gameboard = new Board;
+	currentTetromino = nullptr;
 }
 
 Game::~Game() {
 	delete gameboard;
+	delete currentTetromino;
+}
+
+void Game::createNewTetromino() {
+	TetrominoType randomType = getRandomTetrominoType();
+	currentTetromino = new Tetromino(renderer, randomType);
 }
 
 void Game::init() {
@@ -30,6 +44,8 @@ void Game::init() {
 
 		gameboard->init(renderer, 0, 0);
 
+		createNewTetromino();
+
 	}
 
 	else {
@@ -40,15 +56,40 @@ void Game::init() {
 }
 
 void Game::handleEvents() {
+	while (SDL_PollEvent(&event)) {
+		if (event.type == SDL_QUIT) {
+			isRunning = false;
+		}
 
-	SDL_PollEvent(&event);
+		if (event.type == SDL_KEYDOWN && currentTetromino) {
+			switch (event.key.keysym.sym) {
+			case SDLK_UP:
+				currentTetromino->rotate();
+				break;
 
-	switch (event.type)
-	{
-	case SDL_QUIT:
-		isRunning = false;
-		break;
+			case SDLK_LEFT:
+				currentTetromino->move(-1, 0);
+				break;
+
+			case SDLK_RIGHT: 
+				currentTetromino->move(1, 0);
+				break;
+
+			case SDLK_DOWN:
+				currentTetromino->move(0, 1);
+				break;
+			case SDLK_z:
+				delete currentTetromino;
+				createNewTetromino();
+				break;
+
+			default:
+				break;
+			}
+		}
 	}
+
+	
 }
 
 void Game::render() {
@@ -59,6 +100,10 @@ void Game::render() {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
 	gameboard->render(renderer);
+
+	if (currentTetromino) {
+		currentTetromino->render(renderer);
+	}
 
 	SDL_RenderPresent(renderer);
 }

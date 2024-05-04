@@ -11,16 +11,18 @@ public:
 	void render(SDL_Renderer* renderer);
 	void setBlockTexture(int x, int y, int textureindex);
 
+	int getCellSize() const { return cellSize; }
+
 private:
-	int boardWidth = 10;
-	int boardHeight = 20;
-	int cellWidth = 30;
-	int cellHeight = 30;
+	int boardWidth;
+	int boardHeight;
+	int cellSize;
 
 	int boardPositionX;
 	int boardPositionY;
 
 	SDL_Texture* textures[2];
 	SDL_Texture* boardTexture[10][20];
+	bool boardData[10][20];
 };
 

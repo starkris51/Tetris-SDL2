@@ -1,7 +1,9 @@
 #include "Board.h"
 #include "SDL_video.h"
 
-Board::Board() {
+Board::Board() 
+    : cellSize(30), boardWidth(10), boardHeight(20), boardPositionX(0), boardPositionY(0) {
+
     for (int i = 0; i < 2; ++i) {
         textures[i] = nullptr; 
     }
@@ -9,14 +11,21 @@ Board::Board() {
     for (int i = 0; i < boardWidth; ++i) {
         for (int j = 0; j < boardHeight; ++j) {
             boardTexture[i][j] = nullptr;
+            boardData[i][j] = false;
         }
     }
-
-    boardPositionX = 0;
-    boardPositionY = 0;
 }
 
 Board::~Board() {
+    for (int i = 0; i < 2; ++i) {
+        SDL_DestroyTexture(textures[i]);
+    }
+
+    for (int i = 0; i < boardWidth; ++i) {
+        for (int j = 0; j < boardHeight; ++j) {
+            SDL_DestroyTexture(boardTexture[i][j]);
+        }
+    }
 
 }
 
@@ -36,6 +45,7 @@ void Board::init(SDL_Renderer* renderer, int posX, int posY) {
 
 void Board::setBlockTexture(int x, int y, int textureindex) {
     boardTexture[x][y] = textures[textureindex];
+    boardData[x][y] = true;
 }
 
 void Board::render(SDL_Renderer* renderer) {
@@ -44,8 +54,8 @@ void Board::render(SDL_Renderer* renderer) {
             if (boardTexture[i][j]) {
                 SDL_Rect textureRect{};
 
-                textureRect.w = cellWidth;
-                textureRect.h = cellHeight;
+                textureRect.w = cellSize;
+                textureRect.h = cellSize;
 
                 textureRect.x = boardPositionX + (i * textureRect.w);
                 textureRect.y = boardPositionY + (j * textureRect.h);

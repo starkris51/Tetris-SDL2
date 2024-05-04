@@ -1,7 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include <iostream>
-#include "Board.h"
+#include "board.h"
 
 class Game
 {
@@ -18,10 +18,12 @@ public:
     bool running() const { return isRunning; };
 
 private: 
-    Board* gameboard;
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Event event;
+
+    Board* gameboard ;
+
     bool isRunning;
 };
 

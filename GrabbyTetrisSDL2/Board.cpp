@@ -1,53 +1,58 @@
 #include "Board.h"
+#include "SDL_video.h"
 
 Board::Board() {
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 20; j++) {
-            gameboard[i][j] = nullptr;
+    for (int i = 0; i < 2; ++i) {
+        textures[i] = nullptr; 
+    }
+
+    for (int i = 0; i < boardWidth; ++i) {
+        for (int j = 0; j < boardHeight; ++j) {
+            boardTexture[i][j] = nullptr;
         }
     }
+
+    boardPositionX = 0;
+    boardPositionY = 0;
 }
 
 Board::~Board() {
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 20; j++) {
-            if (gameboard[i][j]) {
-                delete gameboard[i][j];
-            }
-        }
-    }
+
 }
 
-void Board::boardinit() {
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 20; j++) {
-            if (gameboard[i][j] == nullptr) {  
+void Board::init(SDL_Renderer* renderer, int posX, int posY) {
+    textures[0] = IMG_LoadTexture(renderer, "./assets/EmptyBlock.png");
+    textures[1] = IMG_LoadTexture(renderer, "./assets/RedBlock.png");
 
-                gameboard[i][j] = new SDL_Rect();
-
-                gameboard[i][j]->w = 25;
-                gameboard[i][j]->h = 25;
-                gameboard[i][j]->x = boardx + i * 25;
-                gameboard[i][j]->y = boardy + j * 25;
-
-            }
+    for (int i = 0; i < boardWidth; i++) {
+        for (int j = 0; j < boardHeight; j++) {
+            boardTexture[i][j] = textures[0];
         }
     }
+
+    boardPositionX = posX;
+    boardPositionY = posY;
 }
 
-void Board::renderboard(SDL_Renderer* renderer) const {
-    if (!renderer) return;
+void Board::setBlockTexture(int x, int y, int textureindex) {
+    boardTexture[x][y] = textures[textureindex];
+}
 
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 20; j++) {
-            if (!gameboard[i][j]) { return; }
+void Board::render(SDL_Renderer* renderer) {
+    for (int i = 0; i < boardWidth; i++) {
+        for (int j = 0; j < boardHeight; j++) {
+            if (boardTexture[i][j]) {
+                SDL_Rect textureRect{};
 
-            SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
-            SDL_RenderFillRect(renderer, gameboard[i][j]);
+                textureRect.w = cellWidth;
+                textureRect.h = cellHeight;
 
-            SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
-            SDL_RenderDrawRect(renderer, gameboard[i][j]);
+                textureRect.x = boardPositionX + (i * textureRect.w);
+                textureRect.y = boardPositionY + (j * textureRect.h);
 
+                SDL_RenderCopy(renderer, boardTexture[i][j], NULL, &textureRect);
+
+            }
         }
     }
 

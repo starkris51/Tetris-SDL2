@@ -1,13 +1,12 @@
 #include "Game.h"
+#include "Board.h"
 
 Game::Game() {
-	gameboard = new Board();
+	gameboard = new Board;
 }
 
 Game::~Game() {
-	if (gameboard) {
-		delete gameboard;
-	}
+	delete gameboard;
 }
 
 void Game::init() {
@@ -27,11 +26,10 @@ void Game::init() {
 			return;
 		}
 
-		if (gameboard) {
-			gameboard->boardinit(); 
-		}
-
 		isRunning = true;
+
+		gameboard->init(renderer, 0, 0);
+
 	}
 
 	else {
@@ -58,12 +56,15 @@ void Game::render() {
 
 	SDL_RenderClear(renderer);
 
-	gameboard->renderboard(renderer);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+	gameboard->render(renderer);
 
 	SDL_RenderPresent(renderer);
 }
 
 void Game::update() {
+
 }
 
 void Game::clean()

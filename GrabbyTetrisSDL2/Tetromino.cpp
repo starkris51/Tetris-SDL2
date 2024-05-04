@@ -194,7 +194,7 @@ static const bool tetrominoShapes[7][4][4][4] = {
 };
 
 Tetromino::Tetromino(SDL_Renderer* renderer, TetrominoType shape)
-    : x(0), y(0), rotationState(0), texture(nullptr), shape(shape) {
+    : x(3), y(0), rotationState(0), texture(nullptr), shape(shape) {
 
     switch (shape) {
     case I:
@@ -237,6 +237,7 @@ void Tetromino::rotate() {
 void Tetromino::move(int dx, int dy) {
     x += dx;
     y += dy;
+
 }
 
 void Tetromino::render(SDL_Renderer* renderer) {

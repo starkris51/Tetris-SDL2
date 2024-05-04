@@ -105,11 +105,22 @@ void Game::render() {
 		currentTetromino->render(renderer);
 	}
 
+	SDL_Delay(100);
+
 	SDL_RenderPresent(renderer);
 }
 
 void Game::update() {
+	if (currentTetromino) {
 
+		std::cout << currentTetromino->getY();
+
+		if (gameboard->checkCollision(currentTetromino->getMatrix(), currentTetromino->getX(), currentTetromino->getY())) {
+			gameboard->placeBlock(currentTetromino->getMatrix(), currentTetromino->getX(), currentTetromino->getY(), currentTetromino->getShape());
+			createNewTetromino();
+		}
+
+	}
 }
 
 void Game::clean()

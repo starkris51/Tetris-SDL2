@@ -49,7 +49,11 @@ void Board::init(SDL_Renderer* renderer, int posX, int posY) {
     boardPositionY = posY;
 }
 
-bool Board::checkCollision(const bool(&matrix)[4][4], int x, int y) {
+bool Board::checkCollision(Tetromino& tetromino) const {
+    const auto& matrix = tetromino.getMatrix();
+    int x = tetromino.getX();
+    int y = tetromino.getY();
+
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             if (matrix[i][j]) {
@@ -57,10 +61,12 @@ bool Board::checkCollision(const bool(&matrix)[4][4], int x, int y) {
                 int boardY = (y) + i;
 
                 if (boardData[boardX][boardY]) {
+                    tetromino.move(0, -1);
                     return true;
                 }
 
-                if (boardY < 0 || boardY >= boardHeight) {
+                if (boardY >= boardHeight) {
+                    tetromino.move(0, -1);
                     return true;
                 }
 
@@ -71,7 +77,41 @@ bool Board::checkCollision(const bool(&matrix)[4][4], int x, int y) {
     return false;
 }
 
-void Board::placeBlock(const bool(&matrix)[4][4], int x, int y, TetrominoType shape) {
+void Board::deleteRow(int row) {
+    for (int i = row; i > 0; --i) {
+        for (int j = 0; j < 10; ++j) {
+            boardData[j][i] = boardData[j][i - 1];
+            boardTexture[j][i] = boardTexture[j][i - 1];
+        }
+    }
+}
+
+void Board::checkLines() {
+    std::cout << "test";
+
+    for (int i = 0; i < 20; ++i) {
+        bool isRowComplete = true;
+
+        for (int j = 0; j < 10; ++j) {
+            if (!boardData[j][i]) {
+                isRowComplete = false;
+                break;
+            }
+        }
+
+        if (isRowComplete) {
+            std::cout << "lineCleared";
+            deleteRow(i);
+        }
+
+     }
+}
+
+void Board::placeBlock(Tetromino& tetromino) {
+    const auto& matrix = tetromino.getMatrix();
+    int x = tetromino.getX();
+    int y = tetromino.getY();
+    const auto shape = tetromino.getShape();
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -105,6 +145,7 @@ void Board::placeBlock(const bool(&matrix)[4][4], int x, int y, TetrominoType sh
                         boardTexture[boardX][boardY] = textures[1];
                         break;
                     }
+
                 } else {
                     std::cerr << "Out-of-bounds position: (" << boardX << ", " << boardY << ")" << std::endl;
                 }
@@ -112,6 +153,8 @@ void Board::placeBlock(const bool(&matrix)[4][4], int x, int y, TetrominoType sh
             }
         }
     }
+
+    checkLines();
 }
 
 void Board::render(SDL_Renderer* renderer) {

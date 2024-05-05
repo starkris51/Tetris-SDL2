@@ -11,8 +11,10 @@ public:
 	~Board();
 	void init(SDL_Renderer* renderer, int posX, int posY);
 	void render(SDL_Renderer* renderer);
-	void placeBlock(const bool(&matrix)[4][4], int x, int y, TetrominoType shape);
-	bool checkCollision(const bool(&matrix)[4][4], int x, int y);
+	void placeBlock(Tetromino& tetromino);
+	void checkLines();
+	bool checkCollision(Tetromino& tetromino) const;
+	void deleteRow(int row);
 
 	int getCellSize() const { return cellSize; }
 

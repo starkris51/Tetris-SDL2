@@ -16,14 +16,14 @@ public:
 	void move(int dx, int dy);
 	void rotate();
 
-	const bool(&Tetromino::getMatrix() const)[4][4]{
+	const bool(&getMatrix() const)[4][4]{
 		return matrix;
 	}
 
-	int getX() { return x; };
-	int getY() { return y; };
+	int getX() const;
+	int getY() const;
 
-	TetrominoType getShape() { return shape; };
+	TetrominoType getShape() const { return shape; };
 
 private:
 	SDL_Texture* texture;

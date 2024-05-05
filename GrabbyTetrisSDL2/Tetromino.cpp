@@ -237,14 +237,21 @@ void Tetromino::rotate() {
 void Tetromino::move(int dx, int dy) {
     x += dx;
     y += dy;
+}
 
+int Tetromino::getX() const {
+    return x;
+}
+
+int Tetromino::getY() const {
+    return y;
 }
 
 void Tetromino::render(SDL_Renderer* renderer) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             if (matrix[i][j]) {
-                SDL_Rect rect;
+                SDL_Rect rect{};
                 rect.x = (x + j) * 30;
                 rect.y = (y + i) * 30;
                 rect.w = 30;

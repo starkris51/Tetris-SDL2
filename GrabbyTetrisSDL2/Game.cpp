@@ -8,7 +8,7 @@ TetrominoType getRandomTetrominoType() {
 }
 
 Game::Game()
-	: window(nullptr), renderer(nullptr), event(), isRunning(1) {
+	: window(nullptr), renderer(nullptr), event(), isRunning(1), lastMoveDownTime(0) {
 	gameboard = new Board;
 	currentTetromino = nullptr;
 }
@@ -19,6 +19,7 @@ Game::~Game() {
 }
 
 void Game::createNewTetromino() {
+	delete currentTetromino;
 	TetrominoType randomType = getRandomTetrominoType();
 	currentTetromino = new Tetromino(renderer, randomType);
 }
@@ -46,6 +47,8 @@ void Game::init() {
 
 		createNewTetromino();
 
+		lastMoveDownTime = SDL_GetTicks();
+
 	}
 
 	else {
@@ -68,23 +71,21 @@ void Game::handleEvents() {
 				break;
 
 			case SDLK_LEFT:
-				currentTetromino->move(-1, 0);
+				currentTetromino->move(-1, 0, *gameboard);
 				break;
 
 			case SDLK_RIGHT: 
-				currentTetromino->move(1, 0);
+				currentTetromino->move(1, 0, *gameboard);
 				break;
 
 			case SDLK_DOWN:
-				currentTetromino->move(0, 1);
-				if (gameboard->checkCollision(*currentTetromino)) {
-					gameboard->placeBlock(*currentTetromino);
-					createNewTetromino();
-				}
+				currentTetromino->move(0, 1, *gameboard);
 				break;
 			case SDLK_z:
-				delete currentTetromino;
 				createNewTetromino();
+				break;
+			case SDLK_SPACE:
+				currentTetromino->hardDrop(*gameboard);
 				break;
 
 			default:
@@ -107,13 +108,24 @@ void Game::render() {
 
 	if (currentTetromino) {
 		currentTetromino->render(renderer);
+
+		currentTetromino->renderGhostPiece(renderer, *gameboard);
 	}
 
 	SDL_RenderPresent(renderer);
 }
 
 void Game::update() {
+	uint32_t currentTime = SDL_GetTicks();
+	if (currentTime - lastMoveDownTime >= 500) {
+		lastMoveDownTime = currentTime;
 
+		currentTetromino->move(0, 1, *gameboard);
+	}
+
+	if (currentTetromino->checkIsPlaced()) {
+		createNewTetromino();
+	}
 }
 
 void Game::clean()

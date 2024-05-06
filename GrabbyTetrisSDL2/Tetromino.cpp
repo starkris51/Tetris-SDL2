@@ -1,4 +1,5 @@
 #include "Tetromino.h"
+#include "Board.h"
 #include <cstring>
 
 static const bool tetrominoShapes[7][4][4][4] = {
@@ -194,7 +195,7 @@ static const bool tetrominoShapes[7][4][4][4] = {
 };
 
 Tetromino::Tetromino(SDL_Renderer* renderer, TetrominoType shape)
-    : x(3), y(0), rotationState(0), texture(nullptr), shape(shape) {
+    : x(3), y(0), rotationState(0), texture(nullptr), shape(shape), isPlaced(false) {
 
     switch (shape) {
     case I:
@@ -234,9 +235,29 @@ void Tetromino::rotate() {
     memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
 }
 
-void Tetromino::move(int dx, int dy) {
+void Tetromino::move(int dx, int dy, Board& board) {
     x += dx;
     y += dy;
+
+    if (board.checkCollision(*this)) {
+        x -= dx;
+        y -= dy;
+
+        if (dx > 0 || dx < 0) {
+            return;
+        }
+        board.placeBlock(*this);
+        isPlaced = true;
+    }
+}
+
+void Tetromino::hardDrop(Board& board) {
+    while (!board.checkCollision(*this)) {
+        y += 1;
+    }
+    y -= 1;
+    board.placeBlock(*this);
+    isPlaced = true;
 }
 
 int Tetromino::getX() const {
@@ -256,8 +277,58 @@ void Tetromino::render(SDL_Renderer* renderer) {
                 rect.y = (y + i) * 30;
                 rect.w = 30;
                 rect.h = 30;
-
+                
                 SDL_RenderCopy(renderer, texture, nullptr, &rect);
+            }
+        }
+    }
+}
+
+void Tetromino::renderGhostPiece(SDL_Renderer* renderer, Board& board) {
+    const auto boardCollision = board.getBoardData();
+    int ghostPositionX = getX();
+    int ghostPositionY = getY();
+    bool stopGhost = false;
+    
+    while (!stopGhost) {
+
+        ghostPositionY++;
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (matrix[i][j]) {
+                    int newGhostPositionX = ghostPositionX + j;
+                    int newGhostPositionY = ghostPositionY + i;
+
+                    if (newGhostPositionY >= 20) {
+                        ghostPositionY--;
+                        stopGhost = true;
+                        break;
+                    }
+                    else if (boardCollision[ghostPositionX][ghostPositionY]) {
+                        ghostPositionY -= i;
+                        stopGhost = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (matrix[i][j]) {
+                SDL_Rect rect{};
+                rect.x = (ghostPositionX + j) * 30;
+                rect.y = (ghostPositionY + i) * 30;
+                rect.w = 30;
+                rect.h = 30;
+
+                SDL_Texture* ghostTexture = IMG_LoadTexture(renderer, "./assets/RedBlock.png");;
+                SDL_SetTextureAlphaMod(ghostTexture, 150);
+
+                SDL_RenderCopy(renderer, ghostTexture, nullptr, &rect);
             }
         }
     }

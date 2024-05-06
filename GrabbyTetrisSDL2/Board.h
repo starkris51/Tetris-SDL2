@@ -1,8 +1,9 @@
 #pragma once
 #include <SDL.h>
 #include <SDL_image.h>
-#include "Tetromino.h"
 #include <iostream>
+
+class Tetromino;
 
 class Board
 {
@@ -17,6 +18,10 @@ public:
 	void deleteRow(int row);
 
 	int getCellSize() const { return cellSize; }
+
+	const bool(&getBoardData() const)[10][20]{
+		return boardData;
+	}
 
 private:
 	int boardWidth;

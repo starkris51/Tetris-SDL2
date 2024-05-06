@@ -1,5 +1,6 @@
 #include "Board.h"
 #include "SDL_video.h"
+#include "Tetromino.h"
 
 Board::Board() 
     : cellSize(30), boardWidth(10), boardHeight(20), boardPositionX(0), boardPositionY(0) {
@@ -60,13 +61,14 @@ bool Board::checkCollision(Tetromino& tetromino) const {
                 int boardX = (x) + j;
                 int boardY = (y) + i;
 
-                if (boardData[boardX][boardY]) {
-                    tetromino.move(0, -1);
+
+                if (boardY < 0 || boardY >= boardHeight) {
                     return true;
                 }
-
-                if (boardY >= boardHeight) {
-                    tetromino.move(0, -1);
+                else if (boardX < 0 || boardX >= boardWidth) {
+                    return true;
+                }
+                else if (boardData[boardX][boardY]) {
                     return true;
                 }
 
@@ -87,8 +89,6 @@ void Board::deleteRow(int row) {
 }
 
 void Board::checkLines() {
-    std::cout << "test";
-
     for (int i = 0; i < 20; ++i) {
         bool isRowComplete = true;
 
@@ -100,7 +100,6 @@ void Board::checkLines() {
         }
 
         if (isRowComplete) {
-            std::cout << "lineCleared";
             deleteRow(i);
         }
 

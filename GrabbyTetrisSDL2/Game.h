@@ -5,7 +5,6 @@
 #include "Tetromino.h"
 #include "Board.h"
 #include <iostream>
-#include "board.h"
 
 class Game
 {
@@ -27,6 +26,8 @@ private:
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Event event;
+
+    uint32_t  lastMoveDownTime;
 
     Board* gameboard;
     Tetromino* currentTetromino;

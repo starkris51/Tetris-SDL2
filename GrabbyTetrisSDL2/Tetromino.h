@@ -16,7 +16,7 @@ public:
 	void render(SDL_Renderer* renderer);
 	void renderGhostPiece(SDL_Renderer* renderer, Board& board);
 	void move(int dx, int dy, Board& board);
-	void rotate();
+	void rotate(bool clockwise);
 	void hardDrop(Board& board);
 
 	const bool(&getMatrix() const)[4][4]{

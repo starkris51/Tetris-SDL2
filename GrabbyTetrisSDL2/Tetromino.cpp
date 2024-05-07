@@ -234,8 +234,13 @@ Tetromino::~Tetromino() {
     }
 }
 
-void Tetromino::rotate() {
-    rotationState = (rotationState + 1) % 4;
+void Tetromino::rotate(bool clockwise) {
+    if (clockwise) {
+        rotationState = (rotationState + 1) % 4;
+    }
+    else {
+        rotationState = (rotationState - 1 + 4) % 4;
+    }
     memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
 }
 

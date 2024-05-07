@@ -31,6 +31,7 @@ private:
     uint32_t  lastMoveInputTime;
 
     bool canHardDrop;
+    bool canRotate;
 
     Board* gameboard;
     Tetromino* currentTetromino;

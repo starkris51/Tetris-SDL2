@@ -1,6 +1,6 @@
 #include "Game.h"
 
-TetrominoType getRandomTetrominoType() {
+static TetrominoType getRandomTetrominoType() {
 	static std::default_random_engine engine((unsigned)time(0));
 	std::uniform_int_distribution<int> distribution(0, 6);
 
@@ -8,7 +8,7 @@ TetrominoType getRandomTetrominoType() {
 }
 
 Game::Game()
-	: window(nullptr), renderer(nullptr), event(), isRunning(1), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false) {
+	: window(nullptr), renderer(nullptr), event(), isRunning(1), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false), canRotate(false) {
 	gameboard = new Board;
 	currentTetromino = nullptr;
 }
@@ -26,7 +26,7 @@ void Game::createNewTetromino() {
 
 void Game::init() {
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
+		if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
 		window = SDL_CreateWindow("Tetrizz 2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 600, 600, SDL_WINDOW_RESIZABLE);
 		if (!window) {
 			std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
@@ -72,8 +72,8 @@ void Game::handleEvents() {
 			if (event.key.keysym.sym == SDLK_SPACE) {
 				canHardDrop = false;
 			}
-			if (event.key.keysym.sym == SDLK_UP) {
-				currentTetromino->rotate();
+			if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_z) {
+				canRotate = false;
 			}
 		}
 	}
@@ -95,6 +95,15 @@ void Game::handleEvents() {
 		if (!canHardDrop && keyboard_state[SDL_SCANCODE_SPACE]) {
 			canHardDrop = true;
 			currentTetromino->hardDrop(*gameboard);
+		}
+
+		if (!canRotate && keyboard_state[SDL_SCANCODE_UP]) {
+			canRotate = true;
+			currentTetromino->rotate(true);
+		}
+		else if (!canRotate && keyboard_state[SDL_SCANCODE_Z]) {
+			canRotate = true;
+			currentTetromino->rotate(false);
 		}
 	}
 }

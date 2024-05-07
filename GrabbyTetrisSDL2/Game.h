@@ -28,6 +28,9 @@ private:
     SDL_Event event;
 
     uint32_t  lastMoveDownTime;
+    uint32_t  lastMoveInputTime;
+
+    bool canHardDrop;
 
     Board* gameboard;
     Tetromino* currentTetromino;

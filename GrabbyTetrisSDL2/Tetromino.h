@@ -32,6 +32,7 @@ public:
 
 private:
 	SDL_Texture* texture;
+	SDL_Texture* ghostTexture;
 	bool matrix[4][4];
 	int x, y;
 	int rotationState;

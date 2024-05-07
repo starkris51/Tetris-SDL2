@@ -221,12 +221,16 @@ Tetromino::Tetromino(SDL_Renderer* renderer, TetrominoType shape)
         break;
     }
 
+    ghostTexture = IMG_LoadTexture(renderer, "./assets/GhostBlock.png");;
+
+
     memcpy(matrix, tetrominoShapes[shape][0], sizeof(bool) * 4 * 4);
 }
 
 Tetromino::~Tetromino() {
     if (texture) {
         SDL_DestroyTexture(texture);
+        SDL_DestroyTexture(ghostTexture);
     }
 }
 
@@ -305,8 +309,9 @@ void Tetromino::renderGhostPiece(SDL_Renderer* renderer, Board& board) {
                         stopGhost = true;
                         break;
                     }
-                    else if (boardCollision[ghostPositionX][ghostPositionY]) {
-                        ghostPositionY -= i;
+
+                    if (boardCollision[newGhostPositionX][newGhostPositionY]) {
+                        ghostPositionY--;
                         stopGhost = true;
                         break;
                     }
@@ -324,9 +329,6 @@ void Tetromino::renderGhostPiece(SDL_Renderer* renderer, Board& board) {
                 rect.y = (ghostPositionY + i) * 30;
                 rect.w = 30;
                 rect.h = 30;
-
-                SDL_Texture* ghostTexture = IMG_LoadTexture(renderer, "./assets/RedBlock.png");;
-                SDL_SetTextureAlphaMod(ghostTexture, 150);
 
                 SDL_RenderCopy(renderer, ghostTexture, nullptr, &rect);
             }

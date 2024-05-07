@@ -8,7 +8,7 @@ TetrominoType getRandomTetrominoType() {
 }
 
 Game::Game()
-	: window(nullptr), renderer(nullptr), event(), isRunning(1), lastMoveDownTime(0) {
+	: window(nullptr), renderer(nullptr), event(), isRunning(1), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false) {
 	gameboard = new Board;
 	currentTetromino = nullptr;
 }
@@ -59,42 +59,44 @@ void Game::init() {
 }
 
 void Game::handleEvents() {
+	uint32_t currentTime = SDL_GetTicks();
+	const Uint8* keyboard_state = SDL_GetKeyboardState(nullptr);
+
+
 	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_QUIT) {
+		if (event.type == SDL_QUIT || event.key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
 		}
 
-		if (event.type == SDL_KEYDOWN && currentTetromino) {
-			switch (event.key.keysym.sym) {
-			case SDLK_UP:
+		if (event.type == SDL_KEYUP) {
+			if (event.key.keysym.sym == SDLK_SPACE) {
+				canHardDrop = false;
+			}
+			if (event.key.keysym.sym == SDLK_UP) {
 				currentTetromino->rotate();
-				break;
-
-			case SDLK_LEFT:
-				currentTetromino->move(-1, 0, *gameboard);
-				break;
-
-			case SDLK_RIGHT: 
-				currentTetromino->move(1, 0, *gameboard);
-				break;
-
-			case SDLK_DOWN:
-				currentTetromino->move(0, 1, *gameboard);
-				break;
-			case SDLK_z:
-				createNewTetromino();
-				break;
-			case SDLK_SPACE:
-				currentTetromino->hardDrop(*gameboard);
-				break;
-
-			default:
-				break;
 			}
 		}
 	}
 
-	
+	if (currentTetromino) {
+		if (keyboard_state[SDL_SCANCODE_LEFT] && currentTime - lastMoveInputTime >= 100) {
+			lastMoveInputTime = currentTime;
+			currentTetromino->move(-1, 0, *gameboard);
+		} else if (keyboard_state[SDL_SCANCODE_RIGHT] && currentTime - lastMoveInputTime >= 100) {
+			lastMoveInputTime = currentTime;
+			currentTetromino->move(1, 0, *gameboard);
+		}
+
+		if (keyboard_state[SDL_SCANCODE_DOWN] && currentTime - lastMoveInputTime >= 50) {
+			lastMoveInputTime = currentTime;
+			currentTetromino->move(0, 1, *gameboard);
+		}
+
+		if (!canHardDrop && keyboard_state[SDL_SCANCODE_SPACE]) {
+			canHardDrop = true;
+			currentTetromino->hardDrop(*gameboard);
+		}
+	}
 }
 
 void Game::render() {
@@ -106,18 +108,16 @@ void Game::render() {
 
 	gameboard->render(renderer);
 
-	if (currentTetromino) {
-		currentTetromino->render(renderer);
+	currentTetromino->render(renderer);
 
-		currentTetromino->renderGhostPiece(renderer, *gameboard);
-	}
+	currentTetromino->renderGhostPiece(renderer, *gameboard);
 
 	SDL_RenderPresent(renderer);
 }
 
 void Game::update() {
 	uint32_t currentTime = SDL_GetTicks();
-	if (currentTime - lastMoveDownTime >= 500) {
+	if (currentTime - lastMoveDownTime >= 200) {
 		lastMoveDownTime = currentTime;
 
 		currentTetromino->move(0, 1, *gameboard);

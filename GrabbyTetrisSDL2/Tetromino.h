@@ -4,7 +4,7 @@
 #include "Board.h"
 
 enum TetrominoType {
-	I=0, O=1, T=2, L=3, J=4, S=5, Z=6
+	I=0, O=1, T=2, L=3, J=4, S=5, Z=6, None=7
 };
 
 class Tetromino
@@ -38,5 +38,6 @@ private:
 	int rotationState;
 	bool isPlaced;
 	TetrominoType shape;
+	uint32_t lockPhase;
 };
 

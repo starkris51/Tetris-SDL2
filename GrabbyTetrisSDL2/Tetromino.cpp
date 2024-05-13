@@ -195,7 +195,7 @@ static const bool tetrominoShapes[7][4][4][4] = {
 };
 
 Tetromino::Tetromino(SDL_Renderer* renderer, TetrominoType shape)
-    : x(3), y(0), rotationState(0), texture(nullptr), shape(shape), isPlaced(false) {
+    : x(3), y(0), rotationState(0), texture(nullptr), shape(shape), isPlaced(false), lockPhase(0){
 
     switch (shape) {
     case I:
@@ -248,15 +248,28 @@ void Tetromino::move(int dx, int dy, Board& board) {
     x += dx;
     y += dy;
 
+    uint32_t time = 0;
+
     if (board.checkCollision(*this)) {
+        if (lockPhase == 0) {
+            lockPhase = SDL_GetTicks();
+        }
+        
         x -= dx;
         y -= dy;
 
         if (dx > 0 || dx < 0) {
             return;
         }
-        board.placeBlock(*this);
-        isPlaced = true;
+        
+        if (SDL_GetTicks() - lockPhase >= 1000) {
+            std::cout << SDL_GetTicks() - lockPhase << std::endl;
+
+            lockPhase = 0;
+            board.placeBlock(*this);
+            isPlaced = true;
+        }
+
     }
 }
 

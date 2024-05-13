@@ -1,16 +1,13 @@
 #include "Game.h"
 
-static TetrominoType getRandomTetrominoType() {
-	static std::default_random_engine engine((unsigned)time(0));
-	std::uniform_int_distribution<int> distribution(0, 6);
-
-	return static_cast<TetrominoType>(distribution(engine));
-}
+std::array<TetrominoType, 7> tetromino7Bag = { I, O, T, L, J, S, Z};
 
 Game::Game()
-	: window(nullptr), renderer(nullptr), event(), isRunning(1), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false), canRotate(false) {
+	: window(nullptr), renderer(nullptr), event(), isRunning(true), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false), canRotate(false), canStore(false), storedTetromino(None) {
 	gameboard = new Board;
 	currentTetromino = nullptr;
+
+	nextTetrominos = {};
 }
 
 Game::~Game() {
@@ -18,10 +15,35 @@ Game::~Game() {
 	delete currentTetromino;
 }
 
-void Game::createNewTetromino() {
+TetrominoType Game::getNextTetromino() {
+
+	if (nextTetrominos.empty()) {
+		unsigned seed = 0;
+		std::array<TetrominoType, 7> shuffledTetrominos = tetromino7Bag;
+
+		std::shuffle(shuffledTetrominos.begin(), shuffledTetrominos.end(), std::default_random_engine(seed));
+
+		nextTetrominos = shuffledTetrominos;
+	}
+
+	TetrominoType next = nextTetrominos[0];
+
+	std::rotate(nextTetrominos.begin(), nextTetrominos.begin() + 1, nextTetrominos.end());
+
+	return next;
+}
+
+void Game::createNewTetromino(bool stored) {
 	delete currentTetromino;
-	TetrominoType randomType = getRandomTetrominoType();
-	currentTetromino = new Tetromino(renderer, randomType);
+
+	if (!stored) {
+		TetrominoType randomType = getNextTetromino();
+		currentTetromino = new Tetromino(renderer, randomType);
+	}
+	else {
+		currentTetromino = new Tetromino(renderer, storedTetromino);
+	}
+
 }
 
 void Game::init() {
@@ -45,7 +67,7 @@ void Game::init() {
 
 		gameboard->init(renderer, 0, 0);
 
-		createNewTetromino();
+		createNewTetromino(false);
 
 		lastMoveDownTime = SDL_GetTicks();
 
@@ -74,6 +96,9 @@ void Game::handleEvents() {
 			}
 			if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_z) {
 				canRotate = false;
+			}
+			if (event.key.keysym.sym == SDLK_c) {
+				canStore = false;
 			}
 		}
 	}
@@ -105,6 +130,21 @@ void Game::handleEvents() {
 			canRotate = true;
 			currentTetromino->rotate(false);
 		}
+
+		if (!canStore && keyboard_state[SDL_SCANCODE_C]) {
+			canStore = true;
+
+			if (storedTetromino == None) {
+				storedTetromino = currentTetromino->getShape();
+				createNewTetromino(false);
+				return;
+			}
+
+			createNewTetromino(true);
+			std::cout << storedTetromino;
+
+			return;
+		}
 	}
 }
 
@@ -126,14 +166,14 @@ void Game::render() {
 
 void Game::update() {
 	uint32_t currentTime = SDL_GetTicks();
-	if (currentTime - lastMoveDownTime >= 200) {
+	if (currentTime - lastMoveDownTime >= 700) {
 		lastMoveDownTime = currentTime;
 
 		currentTetromino->move(0, 1, *gameboard);
 	}
 
 	if (currentTetromino->checkIsPlaced()) {
-		createNewTetromino();
+		createNewTetromino(false);
 	}
 }
 

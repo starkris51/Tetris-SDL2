@@ -2,9 +2,12 @@
 #include <SDL.h>
 #include <stdlib.h>
 #include <random>
+#include <array>
 #include "Tetromino.h"
 #include "Board.h"
 #include <iostream>
+#include <algorithm>
+
 
 class Game
 {
@@ -20,7 +23,9 @@ public:
 
     bool running() const { return isRunning; };
 
-    void createNewTetromino();
+    TetrominoType getNextTetromino();
+
+    void createNewTetromino(bool stored);
 
 private: 
     SDL_Window* window;
@@ -30,8 +35,13 @@ private:
     uint32_t  lastMoveDownTime;
     uint32_t  lastMoveInputTime;
 
+    mutable std::array<TetrominoType, 7> nextTetrominos;
+
+    TetrominoType storedTetromino;
+
     bool canHardDrop;
     bool canRotate;
+    bool canStore;
 
     Board* gameboard;
     Tetromino* currentTetromino;

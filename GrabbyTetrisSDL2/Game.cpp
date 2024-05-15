@@ -1,13 +1,9 @@
 #include "Game.h"
 
-std::array<TetrominoType, 7> tetromino7Bag = { I, O, T, L, J, S, Z};
-
 Game::Game()
-	: window(nullptr), renderer(nullptr), event(), isRunning(true), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false), canRotate(false), canStore(false), storedTetromino(None) {
+	: window(nullptr), renderer(nullptr), event(), isRunning(true), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false), canRotate(false), canStore(false), storedTetromino(None), nextTetrominos() {
 	gameboard = new Board;
 	currentTetromino = nullptr;
-
-	nextTetrominos = {};
 }
 
 Game::~Game() {
@@ -19,7 +15,7 @@ TetrominoType Game::getNextTetromino() {
 
 	if (nextTetrominos.empty()) {
 		unsigned seed = 0;
-		std::array<TetrominoType, 7> shuffledTetrominos = tetromino7Bag;
+		std::vector<TetrominoType> shuffledTetrominos = { I, O, T, L, J, S, Z };
 
 		std::shuffle(shuffledTetrominos.begin(), shuffledTetrominos.end(), std::default_random_engine(seed));
 
@@ -29,6 +25,9 @@ TetrominoType Game::getNextTetromino() {
 	TetrominoType next = nextTetrominos[0];
 
 	std::rotate(nextTetrominos.begin(), nextTetrominos.begin() + 1, nextTetrominos.end());
+
+	for (TetrominoType i : nextTetrominos)
+		std::cout << i << ' ';
 
 	return next;
 }

@@ -35,7 +35,7 @@ private:
     uint32_t  lastMoveDownTime;
     uint32_t  lastMoveInputTime;
 
-    mutable std::array<TetrominoType, 7> nextTetrominos;
+    std::vector<TetrominoType> nextTetrominos;
 
     TetrominoType storedTetromino;
 

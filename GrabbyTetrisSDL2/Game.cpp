@@ -13,21 +13,39 @@ Game::~Game() {
 
 TetrominoType Game::getNextTetromino() {
 
-	if (nextTetrominos.empty()) {
-		unsigned seed = 0;
+	if (nextTetrominos.size() <= 0) {
 		std::vector<TetrominoType> shuffledTetrominos = { I, O, T, L, J, S, Z };
 
+		auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
 		std::shuffle(shuffledTetrominos.begin(), shuffledTetrominos.end(), std::default_random_engine(seed));
 
+		for (TetrominoType i : shuffledTetrominos) {
+			std::cout << i << ' ';
+		}
+		std::cout << " Shuffled Bag" << std::endl;
+
 		nextTetrominos = shuffledTetrominos;
+
+		TetrominoType next = nextTetrominos.front();
+
+		for (TetrominoType i : nextTetrominos) {
+			std::cout << i << ' ';
+		}
+		std::cout << " Bag" << std::endl;
+
+		nextTetrominos.erase(nextTetrominos.begin());
+
+		return next;
 	}
 
-	TetrominoType next = nextTetrominos[0];
+	TetrominoType next = nextTetrominos.front();
 
-	std::rotate(nextTetrominos.begin(), nextTetrominos.begin() + 1, nextTetrominos.end());
+	nextTetrominos.erase(nextTetrominos.begin());
 
-	for (TetrominoType i : nextTetrominos)
+	for (TetrominoType i : nextTetrominos) {
 		std::cout << i << ' ';
+	}
+	std::cout << " Bag" << std::endl;
 
 	return next;
 }
@@ -41,6 +59,7 @@ void Game::createNewTetromino(bool stored) {
 	}
 	else {
 		currentTetromino = new Tetromino(renderer, storedTetromino);
+		storedTetromino = getNextTetromino();
 	}
 
 }

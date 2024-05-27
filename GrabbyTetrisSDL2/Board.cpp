@@ -62,13 +62,7 @@ bool Board::checkCollision(Tetromino& tetromino) const {
                 int boardY = (y) + i;
 
 
-                if (boardY < 0 || boardY >= boardHeight) {
-                    return true;
-                }
-                else if (boardX < 0 || boardX >= boardWidth) {
-                    return true;
-                }
-                else if (boardData[boardX][boardY]) {
+                if (boardX < 0 || boardX >= boardWidth || boardY >= boardHeight || boardY < 0 || boardData[boardX][boardY]) {
                     return true;
                 }
 

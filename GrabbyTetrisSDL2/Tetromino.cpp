@@ -2,197 +2,7 @@
 #include "Board.h"
 #include <cstring>
 
-static const bool tetrominoShapes[7][4][4][4] = {
-    //I Piece
-    {
-        {
-            {0,0,0,0},
-            {1,1,1,1},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,0,1,0},
-            {0,0,1,0},
-            {0,0,1,0},
-            {0,0,1,0},
-        },
-        {
-            {0,0,0,0},
-            {0,0,0,0},
-            {1,1,1,1},
-            {0,0,0,0},
-        },
-        {
-            {0,1,0,0},
-            {0,1,0,0},
-            {0,1,0,0},
-            {0,1,0,0},
-        },
-    },
-    //O
-    {
-        {
-            {0,1,1,0},
-            {0,1,1,0},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,1,0},
-            {0,1,1,0},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,1,0},
-            {0,1,1,0},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,1,0},
-            {0,1,1,0},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-    },
-    //T PIece
-    {
-        {
-            {0,1,0,0},
-            {1,1,1,0},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,0,0},
-            {0,1,1,0},
-            {0,1,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,0,0,0},
-            {1,1,1,0},
-            {0,1,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,0,0},
-            {1,1,0,0},
-            {0,1,0,0},
-            {0,0,0,0},
-        },
-    },
-    //L piece
-    {
-        {
-            {0,0,1,0},
-            {1,1,1,0},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,0,0},
-            {0,1,0,0},
-            {0,1,1,0},
-            {0,0,0,0},
-        },
-        {
-            {0,0,0,0},
-            {1,1,1,0},
-            {1,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {1,1,0,0},
-            {0,1,0,0},
-            {0,1,0,0},
-            {0,0,0,0},
-        },
-    },
-    //J Piece
-    {
-        {
-            {1,0,0,0},
-            {1,1,1,0},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,1,0},
-            {0,1,0,0},
-            {0,1,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,0,0,0},
-            {1,1,1,0},
-            {0,0,1,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,0,0},
-            {0,1,0,0},
-            {1,1,0,0},
-            {0,0,0,0},
-        },
-    },
-    //S Piece 
-    {
-        {
-            {0,1,1,0},
-            {1,1,0,0},
-            {0,0,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,0,0},
-            {0,1,1,0},
-            {0,0,1,0},
-            {0,0,0,0},
-        },
-        {
-            {0,0,0,0},
-            {0,1,1,0},
-            {1,1,0,0},
-            {0,0,0,0},
-        },
-        {
-            {1,0,0,0},
-            {1,1,0,0},
-            {0,1,0,0},
-            {0,0,0,0},
-        },
-    },
-    //Z Piece
-    {
-        {
-            {1,1,0,0},
-            {0,1,1,0},
-            {0,0,0,0},    
-            {0,0,0,0},
-        },
-        {
-            {0,0,1,0},
-            {0,1,1,0},
-            {0,1,0,0},
-            {0,0,0,0},
-        },
-        {
-            {0,0,0,0},
-            {1,1,0,0},
-            {0,1,1,0},
-            {0,0,0,0},
-        },
-        {
-            {0,1,0,0},
-            {1,1,0,0},
-            {1,0,0,0},
-            {0,0,0,0},
-        },
-    }
-};
+
 
 Tetromino::Tetromino(SDL_Renderer* renderer, TetrominoType shape)
     : x(3), y(0), rotationState(0), texture(nullptr), shape(shape), isPlaced(false), lockPhase(0){
@@ -234,14 +44,44 @@ Tetromino::~Tetromino() {
     }
 }
 
-void Tetromino::rotate(bool clockwise) {
+void Tetromino::rotate(bool clockwise, Board& board) {
+    int oldrotationstate = rotationState;
+    int oldX = getX();
+    int oldY = getY();
+
     if (clockwise) {
         rotationState = (rotationState + 1) % 4;
     }
     else {
         rotationState = (rotationState - 1 + 4) % 4;
     }
+
+    int transition = oldrotationstate * 2 + (clockwise ? 0 : 1);
+
     memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
+
+    for (int i = 0; i < 5; i++) {
+        int dx = (shape == I) ? srsKickI[transition][i][0] : srsKickNormal[transition][i][0];
+        int dy = (shape == I) ? srsKickI[transition][i][1] : srsKickNormal[transition][i][1];
+
+        x += dx;
+        y += dy; 
+
+        if (board.checkCollision(*this)) {
+            x = oldX;
+            y = oldY;
+            continue;
+        }
+        else {
+            memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
+            return;
+        }
+
+    }
+
+    rotationState = oldrotationstate;
+    memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
+
 }
 
 void Tetromino::move(int dx, int dy, Board& board) {
@@ -251,25 +91,19 @@ void Tetromino::move(int dx, int dy, Board& board) {
     uint32_t time = 0;
 
     if (board.checkCollision(*this)) {
-        if (lockPhase == 0) {
-            lockPhase = SDL_GetTicks();
-        }
-        
         x -= dx;
         y -= dy;
 
-        if (dx > 0 || dx < 0) {
-            return;
+        if (dy > 0) {
+            if (lockPhase == 0) {
+                lockPhase = SDL_GetTicks();
+            }
+            if (SDL_GetTicks() - lockPhase >= 500) {
+                lockPhase = 0;
+                board.placeBlock(*this);
+                isPlaced = true;
+            }
         }
-        
-        if (SDL_GetTicks() - lockPhase >= 1000) {
-            std::cout << SDL_GetTicks() - lockPhase << std::endl;
-
-            lockPhase = 0;
-            board.placeBlock(*this);
-            isPlaced = true;
-        }
-
     }
 }
 

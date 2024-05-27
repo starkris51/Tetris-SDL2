@@ -58,8 +58,8 @@ void Game::createNewTetromino(bool stored) {
 		currentTetromino = new Tetromino(renderer, randomType);
 	}
 	else {
-		currentTetromino = new Tetromino(renderer, storedTetromino);
 		storedTetromino = getNextTetromino();
+		currentTetromino = new Tetromino(renderer, storedTetromino);
 	}
 
 }
@@ -67,6 +67,7 @@ void Game::createNewTetromino(bool stored) {
 void Game::init() {
 
 		if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
+
 		window = SDL_CreateWindow("Tetrizz 2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 600, 600, SDL_WINDOW_RESIZABLE);
 		if (!window) {
 			std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
@@ -142,11 +143,11 @@ void Game::handleEvents() {
 
 		if (!canRotate && keyboard_state[SDL_SCANCODE_UP]) {
 			canRotate = true;
-			currentTetromino->rotate(true);
+			currentTetromino->rotate(true, *gameboard);
 		}
 		else if (!canRotate && keyboard_state[SDL_SCANCODE_Z]) {
 			canRotate = true;
-			currentTetromino->rotate(false);
+			currentTetromino->rotate(false, *gameboard);
 		}
 
 		if (!canStore && keyboard_state[SDL_SCANCODE_C]) {
@@ -187,7 +188,9 @@ void Game::update() {
 	if (currentTime - lastMoveDownTime >= 700) {
 		lastMoveDownTime = currentTime;
 
-		currentTetromino->move(0, 1, *gameboard);
+		if (!currentTetromino->checkIsPlaced()) {
+			currentTetromino->move(0, 1, *gameboard);
+		}
 	}
 
 	if (currentTetromino->checkIsPlaced()) {

@@ -139,10 +139,7 @@ void Board::placeBlock(Tetromino& tetromino) {
                         break;
                     }
 
-                } else {
-                    std::cerr << "Out-of-bounds position: (" << boardX << ", " << boardY << ")" << std::endl;
                 }
-
             }
         }
     }

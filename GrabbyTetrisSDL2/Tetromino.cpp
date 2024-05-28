@@ -7,6 +7,8 @@
 Tetromino::Tetromino(SDL_Renderer* renderer, TetrominoType shape)
     : x(3), y(0), rotationState(0), texture(nullptr), shape(shape), isPlaced(false), lockPhase(0){
 
+    memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
+
     switch (shape) {
     case I:
         texture = IMG_LoadTexture(renderer, "./assets/TealBlock.png");
@@ -46,8 +48,6 @@ Tetromino::~Tetromino() {
 
 void Tetromino::rotate(bool clockwise, Board& board) {
     int oldrotationstate = rotationState;
-    int oldX = getX();
-    int oldY = getY();
 
     if (clockwise) {
         rotationState = (rotationState + 1) % 4;
@@ -56,20 +56,23 @@ void Tetromino::rotate(bool clockwise, Board& board) {
         rotationState = (rotationState - 1 + 4) % 4;
     }
 
-    int transition = oldrotationstate * 2 + (clockwise ? 0 : 1);
+    int transition = transitionTable[oldrotationstate][clockwise ? 0 : 1];
+
+    std::cout << transition;
 
     memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
 
     for (int i = 0; i < 5; i++) {
+
         int dx = (shape == I) ? srsKickI[transition][i][0] : srsKickNormal[transition][i][0];
         int dy = (shape == I) ? srsKickI[transition][i][1] : srsKickNormal[transition][i][1];
 
         x += dx;
-        y += dy; 
+        y += dy;
 
         if (board.checkCollision(*this)) {
-            x = oldX;
-            y = oldY;
+            x -= dx;
+            y -= dy;
             continue;
         }
         else {

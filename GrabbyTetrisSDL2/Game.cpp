@@ -19,19 +19,9 @@ TetrominoType Game::getNextTetromino() {
 		auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
 		std::shuffle(shuffledTetrominos.begin(), shuffledTetrominos.end(), std::default_random_engine(seed));
 
-		for (TetrominoType i : shuffledTetrominos) {
-			std::cout << i << ' ';
-		}
-		std::cout << " Shuffled Bag" << std::endl;
-
 		nextTetrominos = shuffledTetrominos;
 
 		TetrominoType next = nextTetrominos.front();
-
-		for (TetrominoType i : nextTetrominos) {
-			std::cout << i << ' ';
-		}
-		std::cout << " Bag" << std::endl;
 
 		nextTetrominos.erase(nextTetrominos.begin());
 
@@ -41,11 +31,6 @@ TetrominoType Game::getNextTetromino() {
 	TetrominoType next = nextTetrominos.front();
 
 	nextTetrominos.erase(nextTetrominos.begin());
-
-	for (TetrominoType i : nextTetrominos) {
-		std::cout << i << ' ';
-	}
-	std::cout << " Bag" << std::endl;
 
 	return next;
 }
@@ -119,14 +104,15 @@ void Game::handleEvents() {
 			if (event.key.keysym.sym == SDLK_c) {
 				canStore = false;
 			}
+
 		}
 	}
 
 	if (currentTetromino) {
-		if (keyboard_state[SDL_SCANCODE_LEFT] && currentTime - lastMoveInputTime >= 100) {
+		if (keyboard_state[SDL_SCANCODE_LEFT] && currentTime - lastMoveInputTime >= DAS_REPEAT) {
 			lastMoveInputTime = currentTime;
 			currentTetromino->move(-1, 0, *gameboard);
-		} else if (keyboard_state[SDL_SCANCODE_RIGHT] && currentTime - lastMoveInputTime >= 100) {
+		} else if (keyboard_state[SDL_SCANCODE_RIGHT] && currentTime - lastMoveInputTime >= DAS_REPEAT) {
 			lastMoveInputTime = currentTime;
 			currentTetromino->move(1, 0, *gameboard);
 		}
@@ -160,7 +146,6 @@ void Game::handleEvents() {
 			}
 
 			createNewTetromino(true);
-			std::cout << storedTetromino;
 
 			return;
 		}
@@ -185,6 +170,11 @@ void Game::render() {
 
 void Game::update() {
 	uint32_t currentTime = SDL_GetTicks();
+
+	if (currentTetromino->checkIsPlaced()) {
+		createNewTetromino(false);
+	}
+
 	if (currentTime - lastMoveDownTime >= 700) {
 		lastMoveDownTime = currentTime;
 
@@ -193,9 +183,6 @@ void Game::update() {
 		}
 	}
 
-	if (currentTetromino->checkIsPlaced()) {
-		createNewTetromino(false);
-	}
 }
 
 void Game::clean()

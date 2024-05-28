@@ -9,6 +9,8 @@
 #include <iostream>
 #include <algorithm>
 
+const uint32_t DAS_DELAY = 800;
+const uint32_t DAS_REPEAT = 17;
 
 class Game
 {

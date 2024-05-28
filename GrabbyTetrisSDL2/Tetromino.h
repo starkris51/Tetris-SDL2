@@ -217,6 +217,13 @@ const int srsKickI[8][5][2] = {
     {{0, 0}, {-1, 0}, {2, 0}, {-1, 2}, {2, -1}}   // 0 -> 3
 };
 
+static const int transitionTable[4][2] = {
+    {6, 1}, // 0 -> 1 (clockwise), 0 -> 3 (counterclockwise)
+    {4, 7}, // 1 -> 2 (clockwise), 1 -> 0 (counterclockwise)
+    {2, 5}, // 2 -> 3 (clockwise), 2 -> 1 (counterclockwise)
+    {0, 3}  // 3 -> 0 (clockwise), 3 -> 2 (counterclockwise)
+};
+
 enum TetrominoType {
 	I=0, O=1, T=2, L=3, J=4, S=5, Z=6, None=7
 };

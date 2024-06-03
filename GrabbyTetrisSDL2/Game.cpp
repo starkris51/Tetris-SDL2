@@ -4,6 +4,11 @@ Game::Game()
 	: window(nullptr), renderer(nullptr), event(), isRunning(true), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false), canRotate(false), canStore(false), storedTetromino(None), nextTetrominos() {
 	gameboard = new Board;
 	currentTetromino = nullptr;
+
+	dasTimers[SDL_SCANCODE_LEFT] = 0;
+	dasTimers[SDL_SCANCODE_RIGHT] = 0;
+	dasActive[SDL_SCANCODE_LEFT] = false;
+	dasActive[SDL_SCANCODE_RIGHT] = false;
 }
 
 Game::~Game() {
@@ -105,17 +110,44 @@ void Game::handleEvents() {
 				canStore = false;
 			}
 
+			if (event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_RIGHT) {
+				dasActive[event.key.keysym.scancode] = false;
+				dasTimers[event.key.keysym.scancode] = 0;
+			}
+
 		}
 	}
 
 	if (currentTetromino) {
-		if (keyboard_state[SDL_SCANCODE_LEFT] && currentTime - lastMoveInputTime >= DAS_REPEAT) {
-			lastMoveInputTime = currentTime;
-			currentTetromino->move(-1, 0, *gameboard);
-		} else if (keyboard_state[SDL_SCANCODE_RIGHT] && currentTime - lastMoveInputTime >= DAS_REPEAT) {
-			lastMoveInputTime = currentTime;
-			currentTetromino->move(1, 0, *gameboard);
-		}
+        if (keyboard_state[SDL_SCANCODE_LEFT]) {
+            if (!dasActive[SDL_SCANCODE_LEFT]) {
+                if (currentTime - dasTimers[SDL_SCANCODE_LEFT] >= DAS_DELAY) {
+                    dasActive[SDL_SCANCODE_LEFT] = true;
+                    dasTimers[SDL_SCANCODE_LEFT] = currentTime;
+                } else {
+                    dasTimers[SDL_SCANCODE_LEFT] = currentTime;
+                }
+                currentTetromino->move(-1, 0, *gameboard);
+            } else if (currentTime - dasTimers[SDL_SCANCODE_LEFT] >= DAS_REPEAT) {
+                dasTimers[SDL_SCANCODE_LEFT] = currentTime;
+                currentTetromino->move(-1, 0, *gameboard);
+            }
+        }
+
+        if (keyboard_state[SDL_SCANCODE_RIGHT]) {
+            if (!dasActive[SDL_SCANCODE_RIGHT]) {
+                if (currentTime - dasTimers[SDL_SCANCODE_RIGHT] >= DAS_DELAY) {
+                    dasActive[SDL_SCANCODE_RIGHT] = true;
+                    dasTimers[SDL_SCANCODE_RIGHT] = currentTime;
+                } else {
+                    dasTimers[SDL_SCANCODE_RIGHT] = currentTime;
+                }
+                currentTetromino->move(1, 0, *gameboard);
+            } else if (currentTime - dasTimers[SDL_SCANCODE_RIGHT] >= DAS_REPEAT) {
+                dasTimers[SDL_SCANCODE_RIGHT] = currentTime;
+                currentTetromino->move(1, 0, *gameboard);
+            }
+        }
 
 		if (keyboard_state[SDL_SCANCODE_DOWN] && currentTime - lastMoveInputTime >= 50) {
 			lastMoveInputTime = currentTime;
@@ -175,7 +207,7 @@ void Game::update() {
 		createNewTetromino(false);
 	}
 
-	if (currentTime - lastMoveDownTime >= 700) {
+	if (currentTime - lastMoveDownTime >= 1000) {
 		lastMoveDownTime = currentTime;
 
 		if (!currentTetromino->checkIsPlaced()) {

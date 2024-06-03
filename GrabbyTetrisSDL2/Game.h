@@ -8,6 +8,7 @@
 #include <chrono>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 
 const uint32_t DAS_DELAY = 800;
 const uint32_t DAS_REPEAT = 17;
@@ -41,6 +42,9 @@ private:
     std::vector<TetrominoType> nextTetrominos;
 
     TetrominoType storedTetromino;
+
+    std::unordered_map<SDL_Scancode, uint32_t> dasTimers;
+    std::unordered_map<SDL_Scancode, bool> dasActive;
 
     bool canHardDrop;
     bool canRotate;

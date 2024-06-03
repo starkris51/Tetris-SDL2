@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <unordered_map>
 
-const uint32_t DAS_DELAY = 800;
+const uint32_t DAS_DELAY = 167;
 const uint32_t DAS_REPEAT = 17;
 
 class Game
@@ -36,6 +36,8 @@ private:
     SDL_Renderer* renderer;
     SDL_Event event;
 
+    SDL_Texture* background;
+
     uint32_t  lastMoveDownTime;
     uint32_t  lastMoveInputTime;
 
@@ -49,6 +51,8 @@ private:
     bool canHardDrop;
     bool canRotate;
     bool canStore;
+
+    bool ableToStore;
 
     Board* gameboard;
     Tetromino* currentTetromino;

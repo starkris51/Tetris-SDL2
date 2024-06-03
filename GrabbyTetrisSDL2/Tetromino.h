@@ -231,7 +231,7 @@ enum TetrominoType {
 class Tetromino
 {
 public:
-	Tetromino(SDL_Renderer* renderer, TetrominoType shape);
+	Tetromino(SDL_Renderer* renderer, TetrominoType shape, int positionx, int positiony, int tilesize);
 	~Tetromino();
 
 	void render(SDL_Renderer* renderer);
@@ -256,6 +256,8 @@ private:
 	SDL_Texture* ghostTexture;
 	bool matrix[4][4];
 	int x, y;
+    int tilesize;
+    int offsetx, offsety;
 	int rotationState;
 	bool isPlaced;
 	TetrominoType shape;

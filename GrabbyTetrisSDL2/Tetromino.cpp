@@ -2,10 +2,10 @@
 #include "Board.h"
 #include <cstring>
 
+Tetromino::Tetromino(SDL_Renderer* renderer, TetrominoType shape, int positionx, int positiony, int tilesize)
+    : x(3), y(0), rotationState(0), texture(nullptr), shape(shape), isPlaced(false), lockPhase(0), offsetx(positionx), offsety(positiony), tilesize(tilesize) {
 
-
-Tetromino::Tetromino(SDL_Renderer* renderer, TetrominoType shape)
-    : x(3), y(0), rotationState(0), texture(nullptr), shape(shape), isPlaced(false), lockPhase(0){
+    tilesize = tilesize;
 
     memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
 
@@ -57,8 +57,6 @@ void Tetromino::rotate(bool clockwise, Board& board) {
     }
 
     int transition = transitionTable[oldrotationstate][clockwise ? 0 : 1];
-
-    std::cout << transition;
 
     memcpy(matrix, tetrominoShapes[shape][rotationState], sizeof(bool) * 4 * 4);
 
@@ -132,10 +130,10 @@ void Tetromino::render(SDL_Renderer* renderer) {
         for (int j = 0; j < 4; j++) {
             if (matrix[i][j]) {
                 SDL_Rect rect{};
-                rect.x = (x + j) * 30;
-                rect.y = (y + i) * 30;
-                rect.w = 30;
-                rect.h = 30;
+                rect.x = offsetx + (x + j) * tilesize;
+                rect.y = offsety + (y + i) * tilesize;
+                rect.w = tilesize;
+                rect.h = tilesize;
                 
                 SDL_RenderCopy(renderer, texture, nullptr, &rect);
             }
@@ -180,10 +178,10 @@ void Tetromino::renderGhostPiece(SDL_Renderer* renderer, Board& board) {
         for (int j = 0; j < 4; j++) {
             if (matrix[i][j]) {
                 SDL_Rect rect{};
-                rect.x = (ghostPositionX + j) * 30;
-                rect.y = (ghostPositionY + i) * 30;
-                rect.w = 30;
-                rect.h = 30;
+                rect.x = offsetx + (ghostPositionX + j) * tilesize;
+                rect.y = offsety + (ghostPositionY + i) * tilesize;
+                rect.w = tilesize;
+                rect.h = tilesize;
 
                 SDL_RenderCopy(renderer, ghostTexture, nullptr, &rect);
             }

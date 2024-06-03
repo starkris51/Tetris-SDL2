@@ -2,8 +2,12 @@
 
 Game::Game()
 	: window(nullptr), renderer(nullptr), event(), isRunning(true), lastMoveDownTime(0), lastMoveInputTime(0), canHardDrop(false), canRotate(false), canStore(false), storedTetromino(None), nextTetrominos() {
-	gameboard = new Board;
+	gameboard = new Board(30);
 	currentTetromino = nullptr;
+
+	ableToStore = true;
+
+	background = nullptr;
 
 	dasTimers[SDL_SCANCODE_LEFT] = 0;
 	dasTimers[SDL_SCANCODE_RIGHT] = 0;
@@ -45,11 +49,11 @@ void Game::createNewTetromino(bool stored) {
 
 	if (!stored) {
 		TetrominoType randomType = getNextTetromino();
-		currentTetromino = new Tetromino(renderer, randomType);
+		currentTetromino = new Tetromino(renderer, randomType, gameboard->getX(), gameboard->getY(), gameboard->getCellSize());
 	}
 	else {
-		storedTetromino = getNextTetromino();
-		currentTetromino = new Tetromino(renderer, storedTetromino);
+		currentTetromino = new Tetromino(renderer, storedTetromino, gameboard->getX(), gameboard->getY(), gameboard->getCellSize());
+		storedTetromino = None;
 	}
 
 }
@@ -58,7 +62,7 @@ void Game::init() {
 
 		if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
 
-		window = SDL_CreateWindow("Tetrizz 2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 600, 600, SDL_WINDOW_RESIZABLE);
+		window = SDL_CreateWindow("Tetrizz 2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 800, SDL_WINDOW_RESIZABLE);
 		if (!window) {
 			std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
 			isRunning = false;
@@ -74,9 +78,17 @@ void Game::init() {
 
 		isRunning = true;
 
-		gameboard->init(renderer, 0, 0);
+		int windowWidth, windowHeight;
+		SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+		int gameboardX = (windowWidth - gameboard->getBoardWidth()) / 2;
+		int gameboardY = (windowHeight - gameboard->getBoardHeight()) / 2;
+
+		gameboard->init(renderer, gameboardX, gameboardY);
 
 		createNewTetromino(false);
+
+		background = IMG_LoadTexture(renderer, "./assets/johnpork.png");
 
 		lastMoveDownTime = SDL_GetTicks();
 
@@ -114,40 +126,52 @@ void Game::handleEvents() {
 				dasActive[event.key.keysym.scancode] = false;
 				dasTimers[event.key.keysym.scancode] = 0;
 			}
+		}
 
+		if (event.type == SDL_KEYDOWN) {
+			if (event.key.keysym.sym == SDLK_LEFT) {
+				dasTimers[SDL_SCANCODE_LEFT] = currentTime;
+				dasActive[SDL_SCANCODE_LEFT] = false;
+				currentTetromino->move(-1, 0, *gameboard);
+			}
+			else if (event.key.keysym.sym == SDLK_RIGHT) {
+				dasTimers[SDL_SCANCODE_RIGHT] = currentTime;
+				dasActive[SDL_SCANCODE_RIGHT] = false;
+				currentTetromino->move(1, 0, *gameboard);
+			}
 		}
 	}
 
 	if (currentTetromino) {
-        if (keyboard_state[SDL_SCANCODE_LEFT]) {
-            if (!dasActive[SDL_SCANCODE_LEFT]) {
-                if (currentTime - dasTimers[SDL_SCANCODE_LEFT] >= DAS_DELAY) {
-                    dasActive[SDL_SCANCODE_LEFT] = true;
-                    dasTimers[SDL_SCANCODE_LEFT] = currentTime;
-                } else {
-                    dasTimers[SDL_SCANCODE_LEFT] = currentTime;
-                }
-                currentTetromino->move(-1, 0, *gameboard);
-            } else if (currentTime - dasTimers[SDL_SCANCODE_LEFT] >= DAS_REPEAT) {
-                dasTimers[SDL_SCANCODE_LEFT] = currentTime;
-                currentTetromino->move(-1, 0, *gameboard);
-            }
-        }
+		bool moveLeft = keyboard_state[SDL_SCANCODE_LEFT];
+		bool moveRight = keyboard_state[SDL_SCANCODE_RIGHT];
+		bool moveDown = keyboard_state[SDL_SCANCODE_DOWN];
 
-        if (keyboard_state[SDL_SCANCODE_RIGHT]) {
-            if (!dasActive[SDL_SCANCODE_RIGHT]) {
-                if (currentTime - dasTimers[SDL_SCANCODE_RIGHT] >= DAS_DELAY) {
-                    dasActive[SDL_SCANCODE_RIGHT] = true;
-                    dasTimers[SDL_SCANCODE_RIGHT] = currentTime;
-                } else {
-                    dasTimers[SDL_SCANCODE_RIGHT] = currentTime;
-                }
-                currentTetromino->move(1, 0, *gameboard);
-            } else if (currentTime - dasTimers[SDL_SCANCODE_RIGHT] >= DAS_REPEAT) {
-                dasTimers[SDL_SCANCODE_RIGHT] = currentTime;
-                currentTetromino->move(1, 0, *gameboard);
-            }
-        }
+		if (moveLeft || moveRight) {
+			SDL_Scancode direction = moveLeft ? SDL_SCANCODE_LEFT : SDL_SCANCODE_RIGHT;
+			int dx = moveLeft ? -1 : 1;
+
+			if (!dasActive[direction]) {
+				if (dasTimers[direction] == 0) {
+					dasTimers[direction] = currentTime;
+				}
+				else if (currentTime - dasTimers[direction] >= DAS_DELAY) {
+					dasActive[direction] = true;
+					dasTimers[direction] = currentTime;
+					currentTetromino->move(dx, 0, *gameboard);
+				}
+			}
+			else if (currentTime - dasTimers[direction] >= DAS_REPEAT) {
+				dasTimers[direction] = currentTime;
+				currentTetromino->move(dx, 0, *gameboard);
+			}
+		}
+		else {
+			dasActive[SDL_SCANCODE_LEFT] = false;
+			dasTimers[SDL_SCANCODE_LEFT] = 0;
+			dasActive[SDL_SCANCODE_RIGHT] = false;
+			dasTimers[SDL_SCANCODE_RIGHT] = 0;
+		}
 
 		if (keyboard_state[SDL_SCANCODE_DOWN] && currentTime - lastMoveInputTime >= 50) {
 			lastMoveInputTime = currentTime;
@@ -156,6 +180,7 @@ void Game::handleEvents() {
 
 		if (!canHardDrop && keyboard_state[SDL_SCANCODE_SPACE]) {
 			canHardDrop = true;
+			ableToStore = true;
 			currentTetromino->hardDrop(*gameboard);
 		}
 
@@ -168,8 +193,9 @@ void Game::handleEvents() {
 			currentTetromino->rotate(false, *gameboard);
 		}
 
-		if (!canStore && keyboard_state[SDL_SCANCODE_C]) {
+		if (!canStore && ableToStore && keyboard_state[SDL_SCANCODE_C]) {
 			canStore = true;
+			ableToStore = false;
 
 			if (storedTetromino == None) {
 				storedTetromino = currentTetromino->getShape();
@@ -177,7 +203,9 @@ void Game::handleEvents() {
 				return;
 			}
 
-			createNewTetromino(true);
+			TetrominoType temp = storedTetromino;
+			storedTetromino = currentTetromino->getShape();
+			currentTetromino = new Tetromino(renderer, temp, gameboard->getX(), gameboard->getY(), gameboard->getCellSize());
 
 			return;
 		}
@@ -190,6 +218,15 @@ void Game::render() {
 	SDL_RenderClear(renderer);
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+	SDL_Rect rect{};
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = SDL_GetWindowSurface(window)->w;
+	rect.h = SDL_GetWindowSurface(window)->h;
+
+
+	SDL_RenderCopy(renderer, background, nullptr, &rect);
 
 	gameboard->render(renderer);
 

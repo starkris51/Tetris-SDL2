@@ -2,8 +2,8 @@
 #include "SDL_video.h"
 #include "Tetromino.h"
 
-Board::Board() 
-    : cellSize(30), boardWidth(10), boardHeight(20), boardPositionX(0), boardPositionY(0) {
+Board::Board(int size)
+    : cellSize(size), boardWidth(10), boardHeight(20), boardPositionX(0), boardPositionY(0) {
 
     for (int i = 0; i < 8; ++i) {
         textures[i] = nullptr; 
@@ -28,6 +28,12 @@ Board::~Board() {
         }
     }
 
+}
+
+void Board::setPosition(int posX, int posY, int size) {
+    boardPositionX = posX;
+    boardPositionY = posY;
+    cellSize = size;
 }
 
 void Board::init(SDL_Renderer* renderer, int posX, int posY) {
@@ -147,6 +153,14 @@ void Board::placeBlock(Tetromino& tetromino) {
     checkLines();
 }
 
+int Board::getBoardWidth() const {
+    return boardWidth * cellSize;
+}
+
+int Board::getBoardHeight() const {
+    return boardHeight * cellSize;
+}
+
 void Board::render(SDL_Renderer* renderer) {
     for (int i = 0; i < boardWidth; i++) {
         for (int j = 0; j < boardHeight; j++) {
@@ -156,8 +170,8 @@ void Board::render(SDL_Renderer* renderer) {
                 textureRect.w = cellSize;
                 textureRect.h = cellSize;
 
-                textureRect.x = boardPositionX + (i * textureRect.w);
-                textureRect.y = boardPositionY + (j * textureRect.h);
+                textureRect.x = getX() + (i * textureRect.w);
+                textureRect.y = getY() + (j * textureRect.h);
 
                 SDL_RenderCopy(renderer, boardTexture[i][j], NULL, &textureRect);
 
